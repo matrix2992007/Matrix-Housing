@@ -1,0 +1,83 @@
+/* MATRIX HOUSING - التصميم النهائي الموحد */
+
+:root {
+    --matrix-green: #00ff00;
+    --dark-bg: #050505;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --neon-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: #ffffff;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    background-image: radial-gradient(circle at center, #0a1a0a 0%, #050505 100%);
+    min-height: 100vh;
+}
+
+/* ستايل الكروت الزجاجية - Glassmorphism */
+.glass-card, .card, .auth-card, .form-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: 0.3s ease-in-out;
+}
+
+/* الأزرار الماتركسية */
+button, .btn-main, .btn-auth, .btn-submit {
+    background: var(--matrix-green);
+    color: #000;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: 0.3s;
+    box-shadow: var(--neon-shadow);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
+}
+
+/* تنسيق المدخلات */
+input, select, textarea {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border);
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+input:focus {
+    border-color: var(--matrix-green);
+    outline: none;
+}
+
+/* العناوين */
+h1, h2, h3 {
+    color: var(--matrix-green);
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+/* تحسين شكل السكرول بار */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #050505;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--matrix-green);
+    border-radius: 10px;
+}
