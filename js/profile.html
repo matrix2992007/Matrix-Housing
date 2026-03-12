@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشخصي | Matrix Housing</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        :root { --matrix-green: #00ff00; --glass: rgba(255, 255, 255, 0.05); }
+        body { background: #050505; color: white; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .profile-card { background: var(--glass); backdrop-filter: blur(15px); border-radius: 20px; border: 1px solid var(--matrix-green); padding: 30px; max-width: 400px; margin: 50px auto; }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--matrix-green); margin-bottom: 15px; }
+        .info-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-edit { background: none; border: 1px solid var(--matrix-green); color: var(--matrix-green); padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <img src="https://via.placeholder.com/100" class="avatar" id="user-avatar">
+        <h2 id="user-name">جاري التحميل...</h2>
+        <p id="user-role-text" style="color: #00ff00;"></p>
+        
+        <div class="info-box">
+            <span>البريد الإلكتروني: </span>
+            <span id="user-email">...</span>
+        </div>
+
+        <div id="stats-section" class="info-box" style="display:none;">
+            <span>عدد العقارات المرفوعة: </span>
+            <span id="property-count">0</span>
+        </div>
+
+        <button class="btn-edit" onclick="location.href='dashboard.html'">العودة للوحة التحكم</button>
+    </div>
+
+    <script src="js/supabase-config.js"></script>
+    <script>
+        async function loadProfile() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) { window.location.href = "auth.html"; return; }
+
+            document.getElementById('user-email').innerText = user.email;
+
+            const { data: profile } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (profile) {
+                document.getElementById('user-name').innerText = profile.full_name || "مستخدم ماتركس";
+                document.getElementById('user-role-text').innerText = profile.role === 'owner' ? "صاحب عقار" : "طالب";
+                
+                if (profile.role === 'owner') {
+                    document.getElementById('stats-section').style.display = 'block';
+                    // هنا ممكن نجيب عدد عقاراته من جدول properties
+                }
+            }
+        }
+        loadProfile();
+    </script>
+</body>
+</html>
