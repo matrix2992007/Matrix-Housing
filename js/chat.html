@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محادثة ماتركس | Matrix Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        body { background: #050505; color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .chat-header { background: rgba(0, 255, 0, 0.1); padding: 15px; text-align: center; border-bottom: 1px solid #00ff00; }
+        #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; line-height: 1.4; }
+        .sent { background: #00ff00; color: black; align-self: flex-start; }
+        .received { background: #222; color: white; align-self: flex-end; }
+        .input-area { padding: 15px; background: #111; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #222; color: white; }
+        button { background: #00ff00; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-header">
+        <h3 id="chat-with">المحادثة</h3>
+    </div>
+
+    <div id="chat-box">
+        </div>
+
+    <div class="input-area">
+        <input type="text" id="msg-input" placeholder="اكتب رسالتك هنا...">
+        <button onclick="sendMsg()">إرسال</button>
+    </div>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/security-guard.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const receiverId = urlParams.get('receiver');
+
+        async function sendMsg() {
+            const input = document.getElementById('msg-input');
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            // تطبيق فلتر السكيورتي اللي عملناه في ملف security-guard.js
+            const cleanMessage = matrixSecurityGuard(input.value);
+
+            const { error } = await supabaseClient.from('messages').insert([{
+                sender_id: user.id,
+                receiver_id: receiverId,
+                content: cleanMessage,
+                created_at: new Date()
+            }]);
+
+            if (!error) {
+                input.value = '';
+                loadMessages();
+            }
+        }
+
+        async function loadMessages() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const { data: msgs } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${user.id})`)
+                .order('created_at', { ascending: true });
+
+            const box = document.getElementById('chat-box');
+            box.innerHTML = '';
+            msgs.forEach(m => {
+                const div = document.createElement('div');
+                div.className = `msg ${m.sender_id === user.id ? 'sent' : 'received'}`;
+                div.innerText = m.content;
+                box.appendChild(div);
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // تحديث الشات كل 3 ثواني
+        setInterval(loadMessages, 3000);
+        loadMessages();
+    </script>
+</body>
+</html>
