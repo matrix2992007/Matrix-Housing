@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم العليا | Matrix Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        :root { --matrix-green: #00ff00; --danger: #ff4444; }
+        body { background: #000; color: #00ff00; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 20px; }
+        .admin-header { border-bottom: 2px solid var(--matrix-green); padding-bottom: 10px; margin-bottom: 30px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-card { background: rgba(0, 255, 0, 0.05); border: 1px solid var(--matrix-green); padding: 20px; border-radius: 10px; text-align: center; }
+        .log-table { width: 100%; border-collapse: collapse; margin-top: 30px; color: white; }
+        .log-table th, .log-table td { border: 1px solid #333; padding: 12px; text-align: right; }
+        .log-table th { background: rgba(0, 255, 0, 0.1); color: var(--matrix-green); }
+        .status-warn { color: var(--danger); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-header">
+        <h1>[ MATRIX CONTROL ROOM ]</h1>
+        <p>نظام الرقابة على سكن الطلاب - العريش</p>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <h3>المستخدمين</h3>
+            <h2 id="total-users">0</h2>
+        </div>
+        <div class="stat-card">
+            <h3>إجمالي الشقق</h3>
+            <h2 id="total-props">0</h2>
+        </div>
+        <div class="stat-card">
+            <h3>رسائل محجوبة</h3>
+            <h2 id="blocked-msgs" style="color: var(--danger);">0</h2>
+        </div>
+    </div>
+
+    <h3>آخر الرسائل المراقبة (Logs)</h3>
+    <table class="log-table">
+        <thead>
+            <tr>
+                <th>المرسل</th>
+                <th>المحتوى</th>
+                <th>الحالة</th>
+                <th>الوقت</th>
+            </tr>
+        </thead>
+        <tbody id="logs-body">
+            </tbody>
+    </table>
+
+    <script src="js/supabase-config.js"></script>
+    <script>
+        async function loadAdminStats() {
+            // جلب عدد الشقق
+            const { count: propCount } = await supabaseClient.from('properties').select('*', { count: 'exact', head: true });
+            document.getElementById('total-props').innerText = propCount || 0;
+
+            // جلب الرسائل اللي فيها علامة الحجب [ممنوع]
+            const { data: logs, count: blockedCount } = await supabaseClient
+                .from('messages')
+                .select('*', { count: 'exact' })
+                .ilike('content', '%ممنوع%');
+
+            document.getElementById('blocked-msgs').innerText = blockedCount || 0;
+
+            const tbody = document.getElementById('logs-body');
+            logs.forEach(log => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${log.sender_id.substring(0, 8)}...</td>
+                        <td>${log.content}</td>
+                        <td class="status-warn">محجوبة جزئياً</td>
+                        <td>${new Date(log.created_at).toLocaleTimeString('ar-EG')}</td>
+                    </tr>
+                `;
+            });
+        }
+        loadAdminStats();
+    </script>
+</body>
+</html>
